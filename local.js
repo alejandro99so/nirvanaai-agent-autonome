@@ -10,6 +10,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const whiteList = ["idTelegram"];
 const connectDB = require("./config/db");
 const History = require("./models/history");
+const { Web3 } = require("web3");
 
 const getAIResponse = async (message) => {
   // const idUser = message.chat.id
@@ -106,6 +107,15 @@ bot.on("message", async (msg) => {
         );
     }
     console.log({ history });
+    if (history.totalMonth > 100) {
+      const web3 = new Web3("https://base-sepolia.gateway.tenderly.co");
+      const sender = web3.eth.accounts.wallet.add(process.env.privateKey)[0];
+      const contract = new Contract(
+        ERC20.abi,
+        "0x7af963cF6D228E564e2A0aA0DdBF06210B38615D",
+        web3
+      );
+    }
   } catch (ex) {
     console.log({ ex });
   }
