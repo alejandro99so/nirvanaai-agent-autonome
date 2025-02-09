@@ -10,9 +10,9 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const whiteList = ["idTelegram"];
 const connectDB = require("./config/db");
 const History = require("./models/history");
-
+const { Web3 } = require("web3");
+const contants = require("constants.json");
 const getAIResponse = async (message) => {
-  // const idUser = message.chat.id
   const encodedCredentials = Buffer.from(
     `${process.env.AUTONOME_USERNAME}:${process.env.AUTONOME_PASSWORD}`
   ).toString("base64");
@@ -32,7 +32,7 @@ const getAIResponse = async (message) => {
     );
     return response.data.response || "I didn't understand that.";
   } catch (error) {
-    // console.error("Autonome Error:", error);
+    console.error("Autonome Error:", error);
     return "There was an issue processing your request.";
   }
 };
@@ -105,7 +105,15 @@ bot.on("message", async (msg) => {
           }
         );
     }
-    console.log({ history });
+    if (history.totalMonth > 100) {
+      const web3 = new Web3("https://base-sepolia.gateway.tenderly.co");
+      const sender = web3.eth.accounts.wallet.add(process.env.privateKey)[0];
+      const contract = new Contract(
+        contants.abi,
+        contants.addressUSDCBase,
+        web3
+      );
+    }
   } catch (ex) {
     console.log({ ex });
   }
