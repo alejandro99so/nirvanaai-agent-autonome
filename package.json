@@ -10,7 +10,9 @@
     "buffer": "^6.0.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "telegraf": "^4.16.3"
+    "mongoose": "^8.10.0",
+    "telegraf": "^4.16.3",
+    "web3": "^4.16.0"
   },
   "author": "",
   "license": "ISC",

@@ -7,9 +7,12 @@ require("dotenv").config();
 const { Telegraf } = require("telegraf");
 const { Buffer } = require("buffer");
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const whiteList = ["IDUsers"];
+const whiteList = ["idTelegram"];
+const connectDB = require("./config/db");
+const History = require("./models/history");
 
 const getAIResponse = async (message) => {
+  // const idUser = message.chat.id
   const encodedCredentials = Buffer.from(
     `${process.env.AUTONOME_USERNAME}:${process.env.AUTONOME_PASSWORD}`
   ).toString("base64");
@@ -29,7 +32,7 @@ const getAIResponse = async (message) => {
     );
     return response.data.response || "I didn't understand that.";
   } catch (error) {
-    console.error("Autonome Error:", error);
+    // console.error("Autonome Error:", error);
     return "There was an issue processing your request.";
   }
 };
@@ -62,7 +65,50 @@ bot.command("ethereum", (ctx) => {
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text || "";
-
+  console.log({ whiteList, chatId });
+  if (!whiteList.includes(chatId.toString())) {
+    bot.telegram.sendMessage(chatId, "User is not available");
+    return;
+  }
+  await connectDB();
+  try {
+    let history = await History.findOne({ userId: chatId });
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    if (!history) {
+      history = await History.create({
+        userId: chatId,
+        total: 1,
+        totalMonth: 1,
+        lastMonthUpdate: month,
+      });
+    } else {
+      const month = today.getMonth() + 1;
+      if (
+        month > history.lastMonthUpdate ||
+        (month == 1 && history.lastMonthUpdate == 12)
+      )
+        history = await History.updateOne(
+          { userId: chatId },
+          {
+            total: history.total + 1,
+            totalMonth: 1,
+            lastMonthUpdate: month,
+          }
+        );
+      else
+        history = await History.updateOne(
+          { userId: chatId },
+          {
+            total: history.total + 1,
+            totalMonth: history.totalMonth + 1,
+          }
+        );
+    }
+    console.log({ history });
+  } catch (ex) {
+    console.log({ ex });
+  }
   if (userMessage) {
     const response = await getAIResponse(userMessage);
     bot.telegram.sendMessage(chatId, response);
