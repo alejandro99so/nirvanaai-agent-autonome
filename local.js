@@ -69,7 +69,4 @@ bot.on("message", async (msg) => {
   }
 });
 
-const BOT_URL = "https://nirvanaai-agent-autonome.vercel.app";
-bot.telegram.setWebhook(`${BOT_URL}/bot`);
-
-module.exports = bot.webhookCallback("/bot");
+bot.launch();
